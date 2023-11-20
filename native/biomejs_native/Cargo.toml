@@ -1,0 +1,15 @@
+[package]
+name = "biomejs_native"
+version = "0.1.0"
+authors = []
+edition = "2021"
+
+[lib]
+name = "biomejs_native"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+biome_fs = { version = "0.1.0", path = "/Rust/biome-ex/biome/crates/biome_fs" }
+biome_service = { version = "0.0.0", path = "/Rust/biome-ex/biome/crates/biome_service" }
+rustler = "0.30.0"
