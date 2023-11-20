@@ -1,21 +1,9 @@
 # Biomejs
 
-**TODO: Add description**
+BiomeJS bindings in Elixir
 
-## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `biomejs` to your list of dependencies in `mix.exs`:
+## Building
 
-```elixir
-def deps do
-  [
-    {:biomejs, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/biomejs>.
+currently you have to clone biome in this folder to compile the Rust code
 
