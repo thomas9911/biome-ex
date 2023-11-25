@@ -1,7 +1,7 @@
 use biome_fs::RomePath;
 use biome_service::file_handlers::Language;
 use biome_service::workspace::FileGuard;
-use biome_service::workspace::{ChangeFileParams, FormatFileParams, OpenFileParams};
+use biome_service::workspace::OpenFileParams;
 use biome_service::WorkspaceRef;
 
 use std::fs::File;
@@ -23,8 +23,8 @@ pub struct Exception {
 
 impl<E: std::error::Error> From<E> for Exception {
     fn from(err: E) -> Exception {
-        Exception{
-            message: err.to_string()
+        Exception {
+            message: err.to_string(),
         }
     }
 }
@@ -36,14 +36,10 @@ fn format(path: &str) -> Result<rustler::Atom, Exception> {
     let path = RomePath::new(path);
 
     {
-        let mut open_file = File::options()
-            .read(true)
-            .write(true)
-            .open(rust_path)?;
+        let mut open_file = File::options().read(true).write(true).open(rust_path)?;
 
         let mut contents = String::new();
-        open_file
-            .read_to_string(&mut contents)?;
+        open_file.read_to_string(&mut contents)?;
 
         let guard = FileGuard::open(
             &*workspace,
@@ -61,21 +57,40 @@ fn format(path: &str) -> Result<rustler::Atom, Exception> {
         let formated_code = printed.as_code();
 
         if current_file_contents == formated_code {
-            return Ok(unchanged())
+            return Ok(unchanged());
         } else {
             open_file.rewind()?;
-            
-            open_file
-                .set_len(0)?;
-    
-            open_file
-                .write_all(printed.as_code().as_bytes())?;
-    
-            guard
-                .change_file(1, printed.into_code())?;
-            return Ok(formatted())
+
+            open_file.set_len(0)?;
+
+            open_file.write_all(printed.as_code().as_bytes())?;
+
+            guard.change_file(1, printed.into_code())?;
+            return Ok(formatted());
         }
     }
 }
 
-rustler::init!("Elixir.BiomeJS.Native", [format]);
+#[rustler::nif]
+fn format_js_string(id: &str, code: String) -> Result<String, Exception> {
+    let workspace = WorkspaceRef::Owned(biome_service::workspace::server());
+    let path = RomePath::new(id);
+
+    {
+        let guard = FileGuard::open(
+            &*workspace,
+            OpenFileParams {
+                path: path,
+                content: code,
+                version: 0,
+                language_hint: Language::JavaScript,
+            },
+        )?;
+
+        let printed = guard.format_file()?;
+
+        Ok(printed.into_code())
+    }
+}
+
+rustler::init!("Elixir.BiomeJS.Native", [format, format_js_string]);
