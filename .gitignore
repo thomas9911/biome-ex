@@ -24,3 +24,5 @@ biomejs-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+native/biomejs_native/biome/

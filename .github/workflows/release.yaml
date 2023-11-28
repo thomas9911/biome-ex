@@ -34,8 +34,7 @@ jobs:
     - name: Clone biome repo
       shell: bash
       run: |
-        git clone https://github.com/biomejs/biome.git
-        cd biome && git reset --hard 7bac8fda8f
+          bash ./clone-biome.sh
 
     - name: Extract project version
       shell: bash
