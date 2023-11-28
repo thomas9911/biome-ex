@@ -1,0 +1,25 @@
+name: On Push
+on: push
+
+jobs:
+  run_test:
+    runs-on: ubuntu-20.04
+    name: OTP ${{matrix.otp}} / Elixir ${{matrix.elixir}}
+    strategy:
+      matrix:
+        otp: ['25.3']
+        elixir: ['1.14.3']
+    steps:
+      - uses: actions/checkout@v3
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{matrix.otp}}
+          elixir-version: ${{matrix.elixir}}
+
+      - name: Clone biome repo
+        shell: bash
+        run: |
+          git clone https://github.com/biomejs/biome.git
+
+      - run: mix deps.get
+      - run: mix test
