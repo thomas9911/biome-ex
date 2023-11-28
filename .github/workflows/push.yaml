@@ -22,6 +22,11 @@ jobs:
         shell: bash
         run: |
           git clone https://github.com/biomejs/biome.git
+          cd biome && git reset --hard 7bac8fda8f
 
       - run: mix deps.get
+      - name: Apply ruster hotfix
+        shell: bash
+        run: |
+          sh hotfix.sh
       - run: mix test
