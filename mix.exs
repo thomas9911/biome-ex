@@ -21,7 +21,8 @@ defmodule BiomeJS.MixProject do
 
   defp deps do
     [
-      {:rustler, "~> 0.30"}
+      {:rustler, "~> 0.30"},
+      {:rustler_precompiled, "~> 0.7"}
     ]
   end
 
