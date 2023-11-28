@@ -10,7 +10,8 @@ defmodule BiomeJS.Native do
     force_build: System.get_env("RUSTLER_PRECOMPILATION_BIOMEJS_BUILD") in ["1", "true"],
     targets:
       Enum.uniq(["aarch64-unknown-linux-musl" | RustlerPrecompiled.Config.default_targets()]),
-    version: version
+    version: version,
+    nif_versions: ["2.16"]
 
   def format(_file), do: :erlang.nif_error(:nif_not_loaded)
   def format_string(_id, _file_type, _code), do: :erlang.nif_error(:nif_not_loaded)
