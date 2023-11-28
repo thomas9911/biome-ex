@@ -4,5 +4,5 @@ defmodule BiomeJS.Native do
   use Rustler, otp_app: :biomejs, crate: "biomejs_native"
 
   def format(_file), do: :erlang.nif_error(:nif_not_loaded)
-  def format_js_string(_id, _code), do: :erlang.nif_error(:nif_not_loaded)
+  def format_string(_id, _file_type, _code), do: :erlang.nif_error(:nif_not_loaded)
 end
