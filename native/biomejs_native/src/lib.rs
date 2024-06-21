@@ -1,18 +1,15 @@
+use biome_configuration::PartialFormatterConfiguration;
+use biome_service::workspace::DocumentFileSource;
 use rustler::NifUnitEnum;
-
-use biome_fs::RomePath;
-use biome_service::configuration::formatter::FormatterConfiguration;
-use biome_service::configuration::Configuration;
-use biome_service::file_handlers::Language;
+use biome_fs::BiomePath;
+use biome_configuration::PartialConfiguration;
 use biome_service::workspace::FileGuard;
 use biome_service::workspace::OpenFileParams;
 use biome_service::workspace::UpdateSettingsParams;
 use biome_service::WorkspaceRef;
-
 use std::fs::File;
 use std::io::{Read, Seek, Write};
 use std::path::Path;
-
 use rustler::NifException;
 
 rustler::atoms! {
@@ -59,25 +56,25 @@ impl FileType {
     }
 }
 
-impl From<FileType> for Language {
-    fn from(file_type: FileType) -> Language {
-        match file_type {
-            FileType::Js => Language::JavaScript,
-            FileType::Jsx => Language::JavaScriptReact,
-            FileType::Ts => Language::TypeScript,
-            FileType::Tsx => Language::TypeScriptReact,
-            FileType::Json => Language::Json,
-            FileType::Jsonc => Language::Jsonc,
-            FileType::Other => Language::Unknown,
-        }
-    }
-}
+// impl From<FileType> for Language {
+//     fn from(file_type: FileType) -> Language {
+//         match file_type {
+//             FileType::Js => Language::JavaScript,
+//             FileType::Jsx => Language::JavaScriptReact,
+//             FileType::Ts => Language::TypeScript,
+//             FileType::Tsx => Language::TypeScriptReact,
+//             FileType::Json => Language::Json,
+//             FileType::Jsonc => Language::Jsonc,
+//             FileType::Other => Language::Unknown,
+//         }
+//     }
+// }
 
 #[rustler::nif]
 fn format(path: &str) -> Result<rustler::Atom, Exception> {
     let workspace = WorkspaceRef::Owned(biome_service::workspace::server());
     let rust_path = Path::new(path);
-    let path = RomePath::new(path);
+    let path = BiomePath::new(path);
 
     {
         let mut open_file = File::options()
@@ -97,7 +94,7 @@ fn format(path: &str) -> Result<rustler::Atom, Exception> {
                 path: path.clone(),
                 content: contents,
                 version: 0,
-                language_hint: Language::from_path(&rust_path),
+                document_file_source: Some(DocumentFileSource::from_path(&rust_path)),
             },
         )?;
 
@@ -124,17 +121,20 @@ fn format(path: &str) -> Result<rustler::Atom, Exception> {
 fn inner_format_string(id: &str, file_type: FileType, code: String) -> Result<String, Exception> {
     let workspace = biome_service::workspace::server();
     workspace.update_settings(UpdateSettingsParams {
-        configuration: Configuration {
-            formatter: Some(FormatterConfiguration {
+        configuration: PartialConfiguration {
+            formatter: Some(PartialFormatterConfiguration {
                 format_with_errors: Some(true),
                 ..Default::default()
             }),
             ..Default::default()
         },
+        vcs_base_path: None,
+        gitignore_matches: vec![],
+        workspace_directory: None
     })?;
 
     let workspace_ref = WorkspaceRef::Owned(workspace);
-    let path = RomePath::new(format!("{}{}", id, file_type.extension()));
+    let path = BiomePath::new(format!("{}{}", id, file_type.extension()));
 
     {
         let guard = FileGuard::open(
@@ -143,7 +143,7 @@ fn inner_format_string(id: &str, file_type: FileType, code: String) -> Result<St
                 path,
                 content: code,
                 version: 0,
-                language_hint: file_type.into(),
+                document_file_source: Some(DocumentFileSource::from_extension(file_type.extension()))
             },
         )?;
 
