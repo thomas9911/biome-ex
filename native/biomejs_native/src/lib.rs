@@ -1,12 +1,18 @@
+use biome_configuration::PartialConfiguration;
+use biome_configuration::PartialFormatterConfiguration;
 use biome_fs::BiomePath;
 use biome_service::workspace::OpenFileParams;
+use biome_service::workspace::RegisterProjectFolderParams;
+use biome_service::workspace::UpdateSettingsParams;
 use biome_service::workspace::{DocumentFileSource, FormatFileParams};
 use biome_service::WorkspaceRef;
+use rustler::serde::SerdeTerm;
 use rustler::NifException;
 use rustler::NifUnitEnum;
 use std::fs::File;
 use std::io::{Read, Seek, Write};
 use std::path::Path;
+use std::path::PathBuf;
 
 rustler::atoms! {
     unchanged,
@@ -53,10 +59,30 @@ impl FileType {
 }
 
 #[rustler::nif]
-fn format(path: &str) -> Result<rustler::Atom, Exception> {
+fn format(path: &str, options: SerdeTerm<serde_json::Value>) -> Result<rustler::Atom, Exception> {
+    let biome_config = convert_options(options.0)?;
+
     let workspace = WorkspaceRef::Owned(biome_service::workspace::server());
     let rust_path = Path::new(path);
     let path = BiomePath::new(path);
+
+    workspace
+        .register_project_folder(RegisterProjectFolderParams {
+            path: Some(rust_path.to_path_buf()),
+            set_as_current_workspace: true,
+        })
+        .map_err(|e| Exception {
+            message: e.to_string(),
+        })?;
+
+    workspace
+        .update_settings(UpdateSettingsParams {
+            configuration: biome_config,
+            vcs_base_path: None,
+            gitignore_matches: Vec::new(),
+            workspace_directory: std::env::current_dir().ok(),
+        })
+        .unwrap();
 
     {
         let mut open_file = File::options()
@@ -95,9 +121,44 @@ fn format(path: &str) -> Result<rustler::Atom, Exception> {
     }
 }
 
-fn inner_format_string(id: &str, file_type: FileType, code: String) -> Result<String, Exception> {
+#[rustler::nif]
+fn format_string(
+    id: &str,
+    file_type: FileType,
+    code: String,
+    options: SerdeTerm<serde_json::Value>,
+) -> Result<String, Exception> {
+    let biome_config = convert_options(options.0)?;
+    inner_format_string(id, file_type, code, biome_config)
+}
+
+fn inner_format_string(
+    id: &str,
+    file_type: FileType,
+    code: String,
+    biome_config: PartialConfiguration,
+) -> Result<String, Exception> {
     let workspace = biome_service::workspace::server();
+    let rust_path = PathBuf::from(format!("{}.{}", id, file_type.extension()));
     let path = BiomePath::new(format!("{}.{}", id, file_type.extension()));
+
+    workspace
+        .register_project_folder(RegisterProjectFolderParams {
+            path: Some(rust_path),
+            set_as_current_workspace: true,
+        })
+        .map_err(|e| Exception {
+            message: e.to_string(),
+        })?;
+
+    workspace
+        .update_settings(UpdateSettingsParams {
+            configuration: biome_config,
+            vcs_base_path: None,
+            gitignore_matches: Vec::new(),
+            workspace_directory: std::env::current_dir().ok(),
+        })
+        .unwrap();
 
     {
         workspace.open_file(OpenFileParams {
@@ -113,9 +174,22 @@ fn inner_format_string(id: &str, file_type: FileType, code: String) -> Result<St
     }
 }
 
-#[rustler::nif]
-fn format_string(id: &str, file_type: FileType, code: String) -> Result<String, Exception> {
-    inner_format_string(id, file_type, code)
+fn convert_options(options: serde_json::Value) -> Result<PartialConfiguration, Exception> {
+    let mut biome_config: PartialConfiguration =
+        serde_json::from_value(options).map_err(|e| Exception {
+            message: e.to_string(),
+        })?;
+
+    if let Some(ref mut formatter) = biome_config.formatter {
+        formatter.format_with_errors = Some(true);
+    } else {
+        biome_config.formatter = Some(PartialFormatterConfiguration {
+            format_with_errors: Some(true),
+            ..Default::default()
+        })
+    }
+
+    Ok(biome_config)
 }
 
 rustler::init!("Elixir.BiomeJS.Native", [format, format_string]);
