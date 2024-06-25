@@ -697,6 +697,7 @@ name = "biomejs_native"
 version = "0.1.0"
 dependencies = [
  "biome_configuration",
+ "biome_formatter",
  "biome_fs",
  "biome_js_syntax",
  "biome_service",

@@ -76,7 +76,8 @@ defmodule BiomeJSTest do
 
 
       console.log(
-        1
+        1,
+        "Hallo"
       )
     }
 
