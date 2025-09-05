@@ -16,7 +16,7 @@ defmodule BiomeJS do
   @typedoc """
   Options for BiomeJS, they are the same as in `biome.json`
   """
-  @type options :: keyword()
+  @type options :: map()
 
   @spec format(binary, options) :: {:ok, atom} | {:error, BiomeJS.Exception}
   def format(path, options \\ %{}) do
