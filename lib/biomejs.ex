@@ -10,6 +10,7 @@ defmodule BiomeJS do
     :tsx,
     :json,
     :jsonc,
+    :graphql,
     :other
   ]
 
@@ -51,6 +52,11 @@ defmodule BiomeJS do
   @spec format_jsonc_string(binary, options) :: {:ok, binary} | {:error, BiomeJS.Exception}
   def format_jsonc_string(code, options \\ %{}) do
     format_string(:jsonc, code, options)
+  end
+
+  @spec format_graphql_string(binary, options) :: {:ok, binary} | {:error, BiomeJS.Exception}
+  def format_graphql_string(code, options \\ %{}) do
+    format_string(:graphql, code, options)
   end
 
   @spec format_string(atom, binary, options) :: {:ok, binary} | {:error, BiomeJS.Exception}

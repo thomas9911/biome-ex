@@ -115,6 +115,24 @@ defmodule BiomeJSTest do
     assert ~s|{ "test": 1, "other": 2 }\n| == text
   end
 
+  test "format graphql" do
+    assert {:ok, text} =
+             BiomeJS.format_graphql_string(~s|{oneQuery(where: {id: 1}){id nested { id } }}|, %{
+               "graphql" => %{"formatter" => %{"indentStyle" => "space"}}
+             })
+
+    assert """
+           {
+             oneQuery(where: { id: 1 }) {
+               id
+               nested {
+                 id
+               }
+             }
+           }
+           """ == text
+  end
+
   test "format invalid json string does not change the input" do
     input = ~s|{"test":1,"other|
     assert {:ok, text} = BiomeJS.format_json_string(input)
