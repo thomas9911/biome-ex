@@ -2,6 +2,8 @@ defmodule BiomeJSTest do
   use ExUnit.Case, async: true
   doctest BiomeJS
 
+  import BiomeJSTest.WindowsFix
+
   test "format js string" do
     assert {:ok, text} =
              BiomeJS.format_js_string("""
@@ -18,7 +20,7 @@ defmodule BiomeJSTest do
 
              """)
 
-    assert """
+    assert ~PLAIN"""
            const a = 1;
 
            const b = () => {
@@ -46,7 +48,7 @@ defmodule BiomeJSTest do
                %{"javascript" => %{"formatter" => %{"quoteStyle" => "single"}}}
              )
 
-    assert """
+    assert ~PLAIN"""
            const a = 1;
 
            const b = () => {
@@ -72,7 +74,7 @@ defmodule BiomeJSTest do
 
              """)
 
-    assert """
+    assert ~PLAIN"""
            const a: number = 1;
 
            const b = (): void => {
@@ -99,7 +101,7 @@ defmodule BiomeJSTest do
                }
              )
 
-    assert """
+    assert ~PLAIN"""
            {
            \t"test": 1,
            \t// a comment
@@ -140,7 +142,7 @@ defmodule BiomeJSTest do
 
     assert {:ok, :formatted} = BiomeJS.format(test_file)
 
-    assert """
+    assert ~PLAIN"""
            const a = 1;
 
            const b = () => {
@@ -173,7 +175,7 @@ defmodule BiomeJSTest do
                "javascript" => %{"formatter" => %{"quoteStyle" => "single"}}
              })
 
-    assert """
+    assert ~PLAIN"""
            const a = 1;
 
            const b = () => {
@@ -186,7 +188,7 @@ defmodule BiomeJSTest do
   test "already formatted file js", %{tmp_dir: tmp_dir} do
     test_file = Path.join(tmp_dir, "javascript.js")
 
-    File.write!(test_file, """
+    File.write!(test_file, ~PLAIN"""
     const a = 1;
 
     const b = () => {
@@ -218,7 +220,7 @@ defmodule BiomeJSTest do
 
     assert {:ok, :formatted} = BiomeJS.format(test_file)
 
-    assert """
+    assert ~PLAIN"""
            const a: number = 1;
 
            const b = (): void => {

@@ -3,6 +3,6 @@
 pushd native/biomejs_native
 git clone https://github.com/biomejs/biome.git
 pushd biome
-git reset --hard c372484473b64c9c84ad3361d71b2c419345b45b
+git reset --hard fe90c785e244b2a17ba8650972fb7eb6ddc6907f
 popd
 popd
